@@ -1,0 +1,10 @@
+2025-09-28 11:23:46,643 - cli - ERROR - error test
+2025-09-28 11:32:15,795 - currency_exchange_rate.logger_setup - ERROR - error test
+2025-09-28 11:32:49,982 - currency_exchange_rate.logger_setup - ERROR - logger test from cli
+2025-09-28 11:36:34,583 - app.cli - ERROR - logger test from cli
+2025-09-28 11:40:04,914 - app.cli - ERROR - logger test from cli
+2025-09-28 11:43:56,937 - currency_exchange_rate.logger_setup - ERROR - logger test from cli
+2025-09-28 11:56:21,369 - app.cli - ERROR - logger test from cli
+2025-09-28 11:56:21,370 - app.api - ERROR - logger test from api
+2025-09-28 11:57:04,056 - app.cli - ERROR - logger test from cli
+2025-09-28 11:57:04,057 - app.api - ERROR - logger test from api
