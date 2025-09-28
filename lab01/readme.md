@@ -55,7 +55,7 @@ if [ $# -eq 0 ]; then
 fi
 ```
  
- `$#` возвращает число аргументов и если оно равно 0, то выполняет код ниже.
+ $# возвращает число аргументов и если оно равно 0, то выполняет код ниже.
 
  функция help просто выводит помощь
 ```bash
@@ -109,10 +109,10 @@ done
 
 Происходит инициализация логов, создание директории в которой должен находиться лог.
 ```bash
-if [ ! -e "${log_path}" ]; then       # Проверка существования лога
-  log_dir=$(dirname "${log_path}")    # Вытащить путь лог файла
-  if [ ! -d "${log_dir}" ]; then      # Если не существует директория
-    mkdir -p "${log_dir}"             # Создать директорию рекурсивно со всеми субдиректориями
+if [ ! -e "$log_path" ]; then       # Проверка существования лога
+  log_dir=$(dirname "$log_path")    # Вытащить путь лог файла
+  if [ ! -d "$log_dir" ]; then      # Если не существует директория
+    mkdir -p "$log_dir"             # Создать директорию рекурсивно со всеми субдиректориями
   fi
 fi
 ```
@@ -124,7 +124,7 @@ fi
 
 Например:
 ```bash
-if ! [[ "${maxsize}" =~ ^[0-9]+$ ]]; then # Проверка соответствия строки регулярному выражению
+if ! [[ "$maxsize" =~ ^[0-9]+$ ]]; then # Проверка соответствия строки регулярному выражению
   log_err "-s must be an integer"       # Вызывается функция вывода ошибки
   help
   exit 1                                # Выход из скрипта
@@ -139,13 +139,13 @@ fi
 
 ```bash
 log_info() {
-  echo "ts=$(date --utc +%FT%TZ) level=INFO $1" >> "${log_path}" 
-  if [ "${verbose}" = true ]; then
+  echo "ts=$(date --utc +%FT%TZ) level=INFO $1" >> "$log_path" 
+  if [ "$verbose" = true ]; then
     echo "$1" 
   fi
 }
 log_err() {
-  echo "ts=$(date --utc +%FT%TZ) level=ERROR message=\"$1\"" >> "${log_path}" 
+  echo "ts=$(date --utc +%FT%TZ) level=ERROR message=\"$1\"" >> "$log_path" 
   >&2 echo "[ERROR] $1" 
 }
 ```
@@ -159,14 +159,14 @@ log_err() {
 ### Логика
 
 ```bash
-dir_size=$(du -sb "${dir}" | awk '{print $1}')
+dir_size=$(du -sb "$dir" | awk '{print $1}')
 ```
-- `du -sb "${dir}"` - считает размер директории в байтах (-s = summary, -b = в байтах).
+- `du -sb "$dir"` - считает размер директории в байтах (-s = summary, -b = в байтах).
 - `awk '{print $1}'` - берёт первое поле (размер)
 - `dir_size` - содержит размер директории в байтах.
 
 ```bash
-dir_sizemb=$(echo "scale=2; ${dir_size}/1024/1024" | bc)
+dir_sizemb=$(echo "scale=2; $dir_size/1024/1024" | bc)
 ```
 - Делим байты на `1024*1024`, чтобы получить размер в MB.
 - `scale=2` - округляем до двух знаков после запятой.
@@ -177,7 +177,7 @@ maxsizeb=$(( maxsize*1024*1024 ))
 - Переводим размер из байтов в MB.
 
 ```bash
-usage=$( echo "scale=2; ${dir_size}/${maxsizeb}*100" | bc )
+usage=$( echo "scale=2; $dir_size/$maxsizeb*100" | bc )
 ```
 - Получаем процент использования делением и умножением на 100
 - округляем до 2 знаков после запятой.
