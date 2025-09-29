@@ -4,7 +4,7 @@ This lab adds a small CLI utility that talks to the support service shipped in `
 
 ## Prerequisites
 
-- Python 3.10 or newer
+- Python 3.12 or newer
 - `pip` for installing Python packages
 - Docker + Docker Compose (only needed if you want to run the bundled service locally)
 
