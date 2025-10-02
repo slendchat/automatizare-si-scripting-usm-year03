@@ -1,0 +1,22 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends cron bash curl \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV DATA_DIR=/app/data
+ENV LOG_DIR=/app/log
+
+RUN mkdir -p $DATA_DIR $LOG_DIR
+
+COPY currency_exchange_rate ./currency_exchange_rate
+RUN pip install ./currency_exchange_rate
+
+COPY cronjob ./
+COPY entrypoint.sh ./
+RUN chmod +x /app/entrypoint.sh
+
+
+CMD ["bash", "entrypoint.sh"]
