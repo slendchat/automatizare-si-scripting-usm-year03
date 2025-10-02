@@ -1,8 +1,5 @@
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-# 0 6 * * * /app/run_currency_job.sh daily >> /var/log/cron.log 2>&1
-# 0 17 * * 5 /app/run_currency_job.sh weekly >> /var/log/cron.log 2>&1
-
-* * * * * /app/run_currency_job.sh daily >> /var/log/cron.log 2>&1
-* * * * * /app/run_currency_job.sh weekly >> /var/log/cron.log 2>&1
+0 6 * * * /app/run_daily.sh >> /var/log/cron.log 2>&1
+0 17 * * 5 /app/run_weekly.sh >> /var/log/cron.log 2>&1

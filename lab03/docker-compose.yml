@@ -2,9 +2,11 @@ services:
   php-api:
     image: php:8.3-apache
     volumes:
-      - ./lab02prep/app:/var/www/html
+      - ./lab02prep/app:/var/www/html:ro
     env_file:
       - ./.env
+    ports:
+      - "8080:80"
     restart: unless-stopped
 
   cron-runner:
