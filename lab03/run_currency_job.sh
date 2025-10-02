@@ -4,7 +4,7 @@ set -eu
 [ -f /etc/environment ] && . /etc/environment
 # Prefer explicit overrides but fall back to compose-provisioned defaults.
 API_KEY="${EXCHANGE_API_KEY:-${API_KEY:-}}"
-BASE_URL="${EXCHANGE_API_BASE_URL:-${API_BASE_URL:-http://php_apache/}}"
+BASE_URL="${EXCHANGE_API_BASE_URL:-${API_BASE_URL:-http://php-api/}}"
 
 if [ -z "${API_KEY}" ]; then
     echo "[run_currency_job] API key missing (set API_KEY or EXCHANGE_API_KEY)" >&2

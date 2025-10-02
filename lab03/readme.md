@@ -22,14 +22,23 @@ This lab reuses the PHP API from lab02 and schedules the existing Python CLI (`c
    docker compose down
    ```
 
+## Networking Notes
+- Docker Compose creates an isolated network where each service is reachable by its service name.
+- The cron runner talks to the API at `http://php-api/`. If you change the service name, update `.env` or `run_currency_job.sh` accordingly.
+- You can verify connectivity after `docker compose up`:
+  ```bash
+  docker compose exec cron-runner ping -c 2 php-api
+  docker compose exec cron-runner curl -s http://php-api/
+  ```
+
 ## Verifying Cron Jobs
 - Follow container logs:
   ```bash
-  docker compose logs -f cron_runner
+  docker compose logs -f cron-runner
   ```
 - Tail the cron output inside the runner:
   ```bash
-  docker compose exec cron_runner tail -n 50 /var/log/cron.log
+  docker compose exec cron-runner tail -n 50 /var/log/cron.log
   ```
 - Inspect the generated snapshots (bind-mounted to the host):
   ```bash
@@ -40,9 +49,9 @@ This lab reuses the PHP API from lab02 and schedules the existing Python CLI (`c
 ## Project Layout
 - `cronjob` - cron schedule: daily MDL->EUR for yesterday and weekly MDL->USD for the previous week.
 - `entrypoint.sh` - container entrypoint that installs the cron table, prepares logging, and starts cron.
-- `run_currency_job.sh` - helper script invoked by cron; computes the target dates and calls `currency-rate` with the correct base URL (`http://php_apache/`).
+- `run_currency_job.sh` - helper script invoked by cron; computes the target dates and calls `currency-rate` with the base URL (`http://php-api/`).
 - `Dockerfile` - builds a Python + cron image, installs dependencies, and wires everything together.
-- `docker-compose.yml` - Compose stack with the PHP API (`php_apache`) and cron runner (`cron_runner`).
+- `docker-compose.yml` - Compose stack with the PHP API (`php-api`) and cron runner (`cron-runner`).
 - `data/` - bind-mounted directory where API responses are stored.
 - `error.log` - bind-mounted file with error tracebacks from the currency script.
 - `currency_exchange_rate/` - Python package copied from lab02 (installed into the container for dependencies).
