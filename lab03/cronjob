@@ -1,0 +1,5 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+0 6 * * * /bin/sh -c 'DATE=$(/usr/local/bin/python -c "from datetime import date, timedelta; print((date.today() - timedelta(days=1)).isoformat())"); /usr/local/bin/python /app/currency_exchange_rate.py MDL EUR "$DATE"' >> /var/log/cron.log 2>&1
+0 17 * * 5 /bin/sh -c 'RANGE=$(/usr/local/bin/python -c "from datetime import date, timedelta; today=date.today(); start=today - timedelta(days=today.weekday()+7); end=start + timedelta(days=6); print(start.isoformat(), end.isoformat())"); set -- $RANGE; /usr/local/bin/python /app/currency_exchange_rate.py MDL USD --range "$1" "$2"' >> /var/log/cron.log 2>&1
