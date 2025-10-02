@@ -1,0 +1,16 @@
+# "🚀 Stopping any running containers..."
+docker compose down
+
+# "🔄 Removing old Docker images..."
+docker system prune -af
+
+# "📦 Building and starting the containers..."
+docker compose up --build -d
+
+sudo docker compose down
+sudo docker system prune -af
+sudo docker compose up --build -d
+
+
+# 0 6 * * * 
+# 0 17 * * 5 

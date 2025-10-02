@@ -1,5 +1,3 @@
-# 0 6 * * * python3 -m currency_exchange_rate.cli RON EUR $(date -d "yesterday" +\%Y-\%m-\%d) --api-url https://api.exchangerate.host --api-key ${API_KEY} >> /var/log/cron.log 2>&1
-# 0 17 * * 5 python3 -m currency_exchange_rate.cli RON USD --range $(date -d "last friday -7 days" +\%Y-\%m-\%d) $(date -d "last friday" +\%Y-\%m-\%d) --api-url https://api.exchangerate.host --api-key ${API_KEY} >> /var/log/cron.log 2>&1
+* * * * * . /etc/environment; /usr/local/bin/python3 -m currency_exchange_rate.cli --api-url $EXCHANGE_API_BASE_URL --api-key $API_KEY --data-dir $DATA_DIR --log-dir $LOG_DIR RON EUR $(date -d "yesterday" +\%Y-\%m-\%d) >> $LOG_DIR/cron.log 2>&1
 
-* * * * * /usr/local/bin/python3 -m currency_exchange_rate.cli RON EUR $(date -d "yesterday" +\%Y-\%m-\%d) --api-url $EXCHANGE_API_BASE_URL --api-key $API_KEY --data-dir $DATA_DIR --log-dir $LOG_DIR >> $LOG_DIR/cron.log 2>&1
-* * * * * /usr/local/bin/python3 -m currency_exchange_rate.cli RON USD --range $(date -d "last friday -7 days" +\%Y-\%m-\%d) $(date -d "last friday" +\%Y-\%m-\%d) --api-url $EXCHANGE_API_BASE_URL --api-key $API_KEY --data-dir $DATA_DIR --log-dir $LOG_DIR >> $LOG_DIR/cron.log 2>&1
+* * * * * . /etc/environment; /usr/local/bin/python3 -m currency_exchange_rate.cli --range $(date -d "last friday -7 days" +\%Y-\%m-\%d) $(date -d "last friday" +\%Y-\%m-\%d) --api-url $EXCHANGE_API_BASE_URL --api-key $API_KEY --data-dir $DATA_DIR --log-dir $LOG_DIR RON USD >> $LOG_DIR/cron.log 2>&1

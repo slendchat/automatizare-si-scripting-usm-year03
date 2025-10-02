@@ -18,5 +18,5 @@ services:
       - ./.env
     volumes:
       - ./data:/app/data
-      - ./error.log:/app/error.log
+      - ./log:/app/log
     restart: unless-stopped

@@ -26,7 +26,7 @@ def init_logger(log_path: str | Path | None = None, logger_name: str = "app") ->
     if log_path is None:
         log_path = get_file_root() / "currency_exchange_rate.log"
 
-    log_path = Path(log_path).resolve()
+    log_path = Path(log_path).resolve() / "currency_exchange_rate.log"
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
     logger_file = logging.FileHandler(log_path, mode="a", encoding="utf-8")
