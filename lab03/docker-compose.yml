@@ -1,19 +1,18 @@
-version: "3.9"
-
 services:
-  php-api:
+  php_apache:
     image: php:8.3-apache
+    container_name: php_apache
     volumes:
       - ./lab02prep/app:/var/www/html
     env_file:
       - ./.env
     restart: unless-stopped
 
-  cron-runner:
+  cron_runner:
     build:
       context: .
     depends_on:
-      - php-api
+      - php_apache
     env_file:
       - ./.env
     volumes:
