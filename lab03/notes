@@ -1,0 +1,22 @@
+# "🚀 Stopping any running containers..."
+docker compose down
+
+# "🔄 Removing old Docker images..."
+docker system prune -af
+
+# "📦 Building and starting the containers..."
+docker compose up --build -d
+
+sudo docker compose down
+sudo docker system prune -af
+sudo docker compose up --build -d
+
+
+# 0 6 * * * 
+# 0 17 * * 5 
+
+# . /etc/environment; - подгружает переменные окружения из файла /etc/environment
+# все благодаря env > /etc/environment в entrypoint.sh
+# /usr/local/bin/python3 -m currency_exchange_rate.cli - запускает модуль cli где main из пакета currency_exchange_rate
+. /etc/environment; /usr/local/bin/python3 -m currency_exchange_rate.cli
+

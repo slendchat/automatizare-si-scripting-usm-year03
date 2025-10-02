@@ -4,25 +4,30 @@ import json
 
 log = logging.getLogger("app.utils")
 
-def ensure_data_dir_exists() -> Path:
-  DATA_DIR = Path(__file__).resolve().parents[2] / "data"
-  DATA_DIR.mkdir(parents = True, exist_ok=True)
-  return DATA_DIR
+import logging
+from pathlib import Path
+import json
 
-def save_response_in_file(data:str,args) -> Path:
-  DATA_DIR = ensure_data_dir_exists()
-  DATA_DIR.mkdir(parents = True, exist_ok=True)
-  filename = f"{args.base}-{args.quote}_currency-rate_{args.date}.json"
-  destination_file = DATA_DIR / filename 
-  with destination_file.open("w", encoding="utf-8") as fh:
-    json.dump(data, fh, indent=2)
-  return destination_file
+log = logging.getLogger("app.utils")
 
-def save_multiple_responses_in_file(data:list[dict[str,any]],args) -> Path:
-  DATA_DIR = ensure_data_dir_exists()
-  start, end = args.range
-  filename = f"{args.base}-{args.quote}_currency-rate_{start}_{end}.json"
-  destination_file = DATA_DIR / filename 
-  with destination_file.open("w", encoding="utf-8") as fh:
-    json.dump(data, fh, indent=2)
-  return destination_file
+def ensure_data_dir_exists(data_dir: str | Path) -> Path:
+    data_path = Path(data_dir).resolve()
+    data_path.mkdir(parents=True, exist_ok=True)
+    return data_path
+
+def save_response_in_file(data: dict, args) -> Path:
+    data_dir = ensure_data_dir_exists(args.data_dir)
+    filename = f"{args.base}-{args.quote}_currency-rate_{args.date}.json"
+    destination_file = data_dir / filename
+    with destination_file.open("w", encoding="utf-8") as fh:
+        json.dump(data, fh, indent=2)
+    return destination_file
+
+def save_multiple_responses_in_file(data: list[dict], args) -> Path:
+    data_dir = ensure_data_dir_exists(args.data_dir)
+    start, end = args.range
+    filename = f"{args.base}-{args.quote}_currency-rate_{start}_{end}.json"
+    destination_file = data_dir / filename
+    with destination_file.open("w", encoding="utf-8") as fh:
+        json.dump(data, fh, indent=2)
+    return destination_file

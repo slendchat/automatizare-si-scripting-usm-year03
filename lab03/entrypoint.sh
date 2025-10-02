@@ -1,21 +1,23 @@
 #!/bin/sh
 set -eu
 
+APP_DIR=/app
+CRON_LOG=/var/log/cron.log
+
 create_log_file() {
-    echo "Creating log file..."
-    touch /var/log/cron.log
-    chmod 666 /var/log/cron.log
-    echo "Log file ready at /var/log/cron.log"
+    echo "Creating cron log at ${CRON_LOG}"
+    touch "${CRON_LOG}"
+    chmod 666 "${CRON_LOG}"
 }
 
-install_cron_schedule() {
-    echo "Installing cron schedule..."
-    crontab /app/cronjob
+install_cron_jobs() {
+    echo "Installing cron schedule from ${APP_DIR}/cronjob"
+    crontab "${APP_DIR}/cronjob"
 }
 
 monitor_logs() {
     echo "=== Monitoring cron logs ==="
-    tail -F /var/log/cron.log &
+    tail -F "${CRON_LOG}" &
 }
 
 run_cron() {
@@ -23,9 +25,9 @@ run_cron() {
     exec cron -f
 }
 
+mkdir -p "${APP_DIR}/data"
 env > /etc/environment
-install_cron_schedule
 create_log_file
+install_cron_jobs
 monitor_logs
 run_cron
-

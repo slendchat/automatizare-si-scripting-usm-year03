@@ -1,5 +1,3 @@
-SHELL=/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+* * * * * . /etc/environment; /usr/local/bin/python3 -m currency_exchange_rate.cli --api-url $EXCHANGE_API_BASE_URL --api-key $API_KEY --data-dir $DATA_DIR --log-dir $LOG_DIR RON EUR $(date -d "yesterday" +\%Y-\%m-\%d) >> $LOG_DIR/cron.log 2>&1
 
-0 6 * * * /bin/sh -c 'DATE=$(/usr/local/bin/python -c "from datetime import date, timedelta; print((date.today() - timedelta(days=1)).isoformat())"); /usr/local/bin/python /app/currency_exchange_rate.py MDL EUR "$DATE"' >> /var/log/cron.log 2>&1
-0 17 * * 5 /bin/sh -c 'RANGE=$(/usr/local/bin/python -c "from datetime import date, timedelta; today=date.today(); start=today - timedelta(days=today.weekday()+7); end=start + timedelta(days=6); print(start.isoformat(), end.isoformat())"); set -- $RANGE; /usr/local/bin/python /app/currency_exchange_rate.py MDL USD --range "$1" "$2"' >> /var/log/cron.log 2>&1
+* * * * * . /etc/environment; /usr/local/bin/python3 -m currency_exchange_rate.cli --range $(date -d "last friday -7 days" +\%Y-\%m-\%d) $(date -d "last friday" +\%Y-\%m-\%d) --api-url $EXCHANGE_API_BASE_URL --api-key $API_KEY --data-dir $DATA_DIR --log-dir $LOG_DIR RON USD >> $LOG_DIR/cron.log 2>&1
