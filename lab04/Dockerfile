@@ -1,4 +1,3 @@
 FROM jenkins/ssh-agent
 
-# install PHP-CLI
-RUN apt-get update && apt-get install -y php-cli
+RUN apt update && apt install -y php php-xml php-cli composer

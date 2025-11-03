@@ -1,61 +1,76 @@
-## Lab 04 – Jenkins CI/CD Automation
+## Лабораторная работа №4 — Автоматизация DevOps-задач в Jenkins
 
-### Project Description
-- Goal: configure a Jenkins-based CI/CD environment capable of running automated DevOps tasks against PHP projects.
-- Components: Dockerized Jenkins controller, Docker-based SSH build agent with PHP CLI tooling, shared volumes, and environment variable driven secrets.
-- Outcome: an operational Jenkins pipeline that installs project dependencies, runs tests on a dedicated agent, and reports results via the Jenkins UI.
+### Цель
+Настроить локальную инфраструктуру Jenkins на базе Docker, подключить удалённого SSH-агента с PHP-инструментами и собрать полноценный конвейер CI/CD для PHP‑проекта с установкой зависимостей и прогоном тестов.  
+![Контейнеры подняты](screenshots/containers_up.png)
 
-### Steps for Setting Up Jenkins Controller
-1. Ensure Docker and Docker Compose are installed locally.
-2. From the `lab04/` directory, review `docker-compose.yml` to confirm the `jenkins-controller` service uses the official `jenkins/jenkins:lts` image, exposes ports `8080` and `50000`, persists data to the `jenkins_home` volume, and connects to the `jenkins-network` bridge.
-3. Start Jenkins: `docker-compose up -d jenkins-controller`.
-4. Watch container logs (`docker-compose logs -f jenkins-controller`) to obtain the initial admin password located at `/var/jenkins_home/secrets/initialAdminPassword`.
-5. Access the UI at http://localhost:8080, unlock Jenkins with the password, install the suggested plugins, and create an admin user.
+### Подготовка окружения
+- Все файлы лабораторной собраны в каталоге `lab04/` репозитория.  
+- На рабочей машине установлены Docker и Docker Compose.  
+- Созданы SSH-ключи для агента и экспортированы через `.env`, пример значений фиксирован в `.env.example`.
 
-### Steps for Setting Up SSH Agent
-1. Generate SSH material in `lab04/secrets/`:
+### Инфраструктура Docker Compose
+Основной стек описан в `docker-compose.yml`:
+- `jenkins-controller` — образ `jenkins/jenkins:lts`, проброшены порты 8080/50000, данные сохраняются в `jenkins_home`.  
+- `ssh-agent` — билд из локального `Dockerfile`, подключён к тому же мостовому `jenkins-network`, монтирует volume `jenkins_agent_volume` с рабочей директорией агента и получает публичный ключ из переменной `JENKINS_AGENT_SSH_PUBKEY`.  
+- Определены общие тома `jenkins_home` и `jenkins_agent_volume`.
+
+### Dockerfile для SSH-агента
+Файл `Dockerfile` расширяет официальный `jenkins/ssh-agent`, устанавливая PHP CLI, расширение DOM (`php-xml`) и Composer:
+```Dockerfile
+FROM jenkins/ssh-agent
+
+RUN apt update && apt install -y php php-xml php-cli composer
+```
+Этого набора достаточно, чтобы конвейер мог выполнять `composer install` и `vendor/bin/phpunit`. После сборки выполняется `docker-compose up -d`, что видно на скриншоте.  
+![Получение initialAdminPassword](screenshots/getting_init_password.png)
+
+### Настройка Jenkins Controller
+1. Запущен контейнер `jenkins-controller` и получен первичный пароль (`docker-compose logs -f jenkins-controller` / `initialAdminPassword`).
+2. Через браузер (http://localhost:8080) выполнена первоначальная настройка: установлены рекомендованные плагины, создан администратор.
+3. Установлен и активирован плагин **SSH Agents Plugin**.
+
+### Настройка SSH-агента
+1. В каталоге `secrets/` сгенерированы ключи:
    ```bash
    mkdir -p secrets
    ssh-keygen -t rsa -b 4096 -f secrets/jenkins_agent_ssh_key -N ""
    ```
-2. Export the agent public key in `.env`:
-   - Copy the contents of `secrets/jenkins_agent_ssh_key.pub` into the `JENKINS_AGENT_SSH_PUBKEY` value (see `.env`).
-3. Build and run the Dockerized agent (installs PHP CLI on top of `jenkins/ssh-agent`): `docker-compose up -d ssh-agent`.
-4. Confirm both containers are healthy with `docker ps` and that the `jenkins_agent_volume` persisted volume exists by inspecting `docker volume ls`.
-5. In Jenkins, verify the "SSH Agents" plugin is installed via **Manage Jenkins → Manage Plugins** (install and restart if missing).
+2. Публичный ключ прописан в `.env` (`JENKINS_AGENT_SSH_PUBKEY=…`), файл `.env.example` оставлен как шаблон.
+3. После `docker-compose up -d ssh-agent` Jenkins смог подключиться к контейнеру.
+4. В веб-интерфейсе добавлены учётные данные типа **SSH Username with private key** (пользователь `jenkins`).
+5. Создан постоянный агент `php-dev-jenkins-agent-01` с меткой `php-agent`, удалённым каталогом `/home/jenkins/agent` и запуском по SSH на хост `ssh-agent`.
 
-### Steps for Creating and Configuring Jenkins Pipeline
-1. Register credentials: **Manage Jenkins → Manage Credentials → System → Global credentials** and add a new **SSH Username with private key** entry for user `jenkins`, selecting `secrets/jenkins_agent_ssh_key`.
-2. Add a permanent agent node: **Manage Jenkins → Nodes → New Node**, name it `ssh-agent1`, assign label `php-agent`, set remote directory `/home/jenkins/agent`, choose “Launch agents via SSH”, target host `ssh-agent`, and select the saved credential.
-3. Confirm the node connects successfully (status should change to “Online” once Jenkins authenticates).
-4. Create a new pipeline job pointing to the target PHP project repository (with unit tests). Use the provided Jenkinsfile, either stored in the repo root or pasted into the pipeline script section:
-   ```groovy
-   pipeline {
-       agent { label 'php-agent' }
-       stages {
-           stage('Install Dependencies') {
-               steps {
-                   echo 'Preparing project...'
-                   // Add composer install or project-specific prep commands here.
-               }
-           }
-           stage('Test') {
-               steps {
-                   echo 'Running tests...'
-                   // Add phpunit or other test commands here.
-               }
-           }
-       }
-       post {
-           always { echo 'Pipeline completed.' }
-           success { echo 'All stages completed successfully!' }
-           failure { echo 'Errors detected in the pipeline.' }
-       }
-   }
-   ```
-5. Save the pipeline and run a build. Confirm stages complete, logs show dependency installation/test execution, and the build finishes with a green status.
+### Подготовка репозитория PHP
+В `lab04/` создан минимальный PHP‑проект:
+- `composer.json` и `composer.lock` фиксируют зависимость `phpunit/phpunit` и PSR-4‑автозагрузку для `src/` и `tests/`.
+- В `src/Example.php` реализован простой класс.
+- В `tests/ExampleTest.php` — тест на PHPUnit.
+- Конфигурация тестов задаётся через `phpunit.xml`.
+- `vendor/` исключён из Git `.gitignore`.
 
-### Questions & Answers
-- **What are the advantages of using Jenkins for DevOps task automation?** Jenkins orchestrates repeatable workflows, integrates with virtually any tool via plugins, enables scalable agent farms, and offers rich visibility into build history, test trends, and deployment audit trails, which improves delivery speed and reliability.
-- **What other types of Jenkins agents exist?** Beyond SSH agents, Jenkins supports inbound JNLP agents, Docker container agents, Kubernetes-based ephemeral agents, Windows service agents, and cloud-specific integrations (e.g., EC2, Azure VM agents).
-- **What problems did you encounter when setting up Jenkins and how did you solve them?** Initial authentication required extracting the autogenerated admin password from container logs, the SSH agent refused to connect until the correct public key was exported into `.env`, and node launches failed until the “SSH Agents” plugin was installed and the agent network name matched the Docker Compose service (`ssh-agent`). Adjusting these settings resolved connectivity and node registration issues.
+### Jenkins Pipeline
+Конвейер опирается на Jenkinsfile из репозитория `https://github.com/slendchat/a-s_lab04_php_CICD-test` и выполняет два этапа:
+1. **Install Dependencies** — `composer install --no-interaction --prefer-dist`.
+2. **Test** — `vendor/bin/phpunit --configuration phpunit.xml`.
+
+Во время настройки пришлось решить несколько проблем:
+- Отсутствие `composer.json` в workspace → добавлен манифест и проброшен в контейнер.
+- Предупреждение об отсутствии `composer.lock` → выполнено `composer update`, файл добавлен в Git.
+- Не хватало расширения `ext-dom` → установлено пакетом `php-xml` в Dockerfile.
+- PHPUnit не видел конфигурацию → в `docker-compose.yml` смонтированы `phpunit.xml` и `tests/`.
+
+После устранения ошибок конвейер выполняется успешно (см. скриншот).  
+![Успешный билд](screenshots/build_success.png)
+
+### Ответы на контрольные вопросы
+- **Преимущества Jenkins для DevOps-автоматизации:** гибкость благодаря конвейерам и плагинам, поддержка агентов на разных платформах, история запусков и метрики тестов, возможность интеграции с системами контроля версий и уведомлениями, масштабируемость за счёт распределённых узлов.
+- **Другие типы агентов Jenkins:** JNLP (Inbound) агенты, Docker-агенты (контейнеры на лету), Kubernetes агенты, Windows-службы, а также облачные провижены (AWS EC2, Azure VM, Google Compute Engine и т.п.).
+- **Какие проблемы встретились и как решались:**  
+  1. Отсутствие Composer-манифеста — добавлены `composer.json` и `composer.lock`.  
+  2. Ошибки по расширению DOM — доустановлен пакет `php-xml` в Dockerfile.  
+  3. Некорректный путь к `phpunit.xml` — настроены volume-монты в `docker-compose.yml`.  
+  4. Периодически offline агент — проверена пара ключей и перезапущен контейнер SSH-агента.
+
+### Итог
+Репозиторий содержит готовую инфраструктуру для запуска Jenkins с выделенным PHP‑агентом, минимальный проект на PHP с тестами и настроенный конвейер CI/CD. Все шаги подтверждены скриншотами в `screenshots/`. После клонирования достаточно заполнить `.env`, запустить `docker-compose up -d` и импортировать Pipeline в Jenkins.
