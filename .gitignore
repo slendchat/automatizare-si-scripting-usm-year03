@@ -2,3 +2,4 @@
 setting.json
 data/*
 log/*
+*/secrets/

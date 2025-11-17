@@ -1,0 +1,39 @@
+---
+- hosts: test_server
+  become: yes
+
+  tasks:
+    - name: Install Apache + PHP + extensions
+      apt:
+        name:
+          - apache2
+          - php
+          - libapache2-mod-php
+          - php-mbstring
+          - php-xml
+          - php-curl
+        state: present
+        update_cache: yes
+
+    - name: Create vhost
+      copy:
+        dest: /etc/apache2/sites-available/project.conf
+        content: |
+          <VirtualHost *:80>
+              DocumentRoot /var/www/project
+              <Directory /var/www/project>
+                  Require all granted
+              </Directory>
+          </VirtualHost>
+
+    - name: Enable vhost
+      command: a2ensite project.conf
+
+    - name: Disable default
+      command: a2dissite 000-default.conf
+
+    - name: Restart apache
+      service:
+        name: apache2
+        state: restarted
+

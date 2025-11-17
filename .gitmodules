@@ -1,0 +1,3 @@
+[submodule "lab05/lab05/a-s_lab04_php_CICD-test"]
+	path = lab05/lab05/a-s_lab04_php_CICD-test
+	url = https://github.com/slendchat/a-s_lab04_php_CICD-test.git

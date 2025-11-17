@@ -1,0 +1,13 @@
+---
+- hosts: test_server
+  become: yes
+
+  tasks:
+
+    - name: Deploy PHP Project Files
+      copy:
+        src: "{{ project_path }}/"
+        dest: /var/www/project/ 
+        owner: www-data
+        group: www-data
+        mode: '0644'

@@ -1,0 +1,44 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV VENV_PATH=/opt/venv
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3 \
+        python3-venv \
+        python3-pip \
+	openjdk-17-jdk \
+	git \
+	openssh-server \
+        openssh-client && \
+	mkdir -p /var/run/sshd && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m venv $VENV_PATH
+ENV PATH="$VENV_PATH/bin:$PATH"
+
+RUN pip install --upgrade pip && \
+    pip install ansible
+
+RUN useradd -m -s /bin/bash ansible
+
+RUN mkdir -p /home/ansible/.ssh
+COPY secrets/jenkins_agent_ssh_key /home/ansible/.ssh/id_jenkins_ansible
+COPY secrets/jenkins_agent_ssh_key.pub /home/ansible/.ssh/id_jenkins_ansible.pub
+COPY secrets/ansible_agent_key /home/ansible/.ssh/id_ansible_to_testserver
+COPY secrets/ansible_agent_key.pub /home/ansible/.ssh/id_ansible_to_testserver.pub
+
+RUN chmod 700 /home/ansible/.ssh && \
+    chmod 600 /home/ansible/.ssh/id_jenkins_ansible \
+               /home/ansible/.ssh/id_ansible_to_testserver && \
+    chmod 644 /home/ansible/.ssh/*.pub && \
+    chown -R ansible:ansible /home/ansible/.ssh
+
+COPY secrets/jenkins_agent_ssh_key.pub /home/ansible/.ssh/authorized_keys
+RUN chmod 600 /home/ansible/.ssh/authorized_keys && \
+	chown ansible:ansible /home/ansible/.ssh/authorized_keys
+
+WORKDIR /home/ansible
+
+CMD ["/usr/sbin/sshd", "-D"]
